@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI会社 経営ダッシュボード</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d47;
+    --accent: #f97316;
+    --accent2: #3b82f6;
+    --accent3: #10b981;
+    --accent4: #a855f7;
+    --warn: #ef4444;
+    --text: #f1f5f9;
+    --text2: #94a3b8;
+    --text3: #475569;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    gap: 16px;
+  }
+
+  .header-left h1 {
+    font-size: clamp(20px, 4vw, 28px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .header-left h1 span {
+    color: var(--accent);
+  }
+
+  .header-left p {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+  }
+
+  .date-badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .date-badge .date {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--accent2);
+    font-weight: 700;
+  }
+
+  .date-badge .month {
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  /* Overall score */
+  .overall {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .overall::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .score-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .score-circle .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .score-circle .label {
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+
+  .overall-text h2 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .overall-text p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  /* Section title */
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Business cards */
+  .businesses {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 500px) {
+    .businesses { grid-template-columns: 1fr; }
+  }
+
+  .biz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .biz-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--card-color);
+  }
+
+  .biz-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-color);
+  }
+
+  .biz-card .biz-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .biz-card .biz-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--card-color);
+    margin-bottom: 2px;
+  }
+
+  .biz-card .biz-sub {
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 14px;
+  }
+
+  /* KPI rows */
+  .kpi-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .kpi-row .kpi-label {
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  .kpi-row .kpi-values {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+  }
+
+  .kpi-row .kpi-target { color: var(--text2); }
+  .kpi-row .kpi-arrow { color: var(--text3); font-size: 9px; }
+  .kpi-row .kpi-actual { font-weight: 700; }
+  .kpi-row .kpi-actual.ok { color: var(--accent3); }
+  .kpi-row .kpi-actual.warn { color: var(--warn); }
+  .kpi-row .kpi-actual.mid { color: var(--accent); }
+
+  /* Progress bar */
+  .prog-bar {
+    height: 4px;
+    background: var(--bg);
+    border-radius: 2px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .prog-bar .fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--card-color);
+    transition: width 1s ease;
+  }
+
+  /* GAP badge */
+  .gap-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+  }
+
+  .gap-badge.gap-ok { background: rgba(16,185,129,0.15); color: var(--accent3); }
+  .gap-badge.gap-warn { background: rgba(239,68,68,0.15); color: var(--warn); }
+  .gap-badge.gap-mid { background: rgba(249,115,22,0.15); color: var(--accent); }
+
+  /* Action table */
+  .action-section {
+    margin-bottom: 28px;
+  }
+
+  .action-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .action-row:last-child { border-bottom: none; }
+  .action-row:hover { background: var(--surface2); }
+
+  .action-row .action-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+  }
+
+  .action-row .action-text {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .action-row .action-text small {
+    display: block;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .action-row .action-biz {
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .action-row .action-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .status-todo { background: rgba(148,163,184,0.1); color: var(--text3); }
+  .status-doing { background: rgba(249,115,22,0.15); color: var(--accent); }
+  .status-done { background: rgba(16,185,129,0.15); color: var(--accent3); }
+
+  /* Edit mode */
+  .edit-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .edit-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .top-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 460px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-field {
+    margin-bottom: 16px;
+  }
+
+  .modal-field label {
+    display: block;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .modal-field input, .modal-field select, .modal-field textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
+    border-color: var(--accent2);
+  }
+
+  .modal-field textarea { min-height: 80px; resize: vertical; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--text2); }
+
+  /* Pulse dot */
+  .pulse {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  /* Tooltip hint */
+  .hint {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Deadline colors */
+  .action-row.deadline-over { border-left: 3px solid #ef4444; }
+  .action-row.deadline-near { border-left: 3px solid #f59e0b; }
+  .action-row.deadline-ok   { border-left: 3px solid #10b981; }
+
+  .assignee-tag { color: var(--text3); margin-right: 8px; }
+  .deadline-tag { font-weight: 600; }
+  .deadline-tag.deadline-over { color: #ef4444; }
+  .deadline-tag.deadline-near { color: #f59e0b; }
+  .deadline-tag.deadline-ok   { color: #10b981; }
+
+  /* Workload chart */
+  .workload-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+
+  .wl-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 40px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .wl-row:last-child { margin-bottom: 0; }
+
+  .wl-name {
+    font-size: 12px;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wl-bar-wrap {
+    height: 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .wl-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+  }
+
+  .wl-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <h1>AI会社<br><span>経営ダッシュボード</span></h1>
+      <p>GAP ANALYSIS & ACTION BOARD</p>
+    </div>
+    <div class="date-badge">
+      <div class="date" id="currentDate">---</div>
+      <div class="month">2025年5月</div>
+    </div>
+  </header>
+
+  <!-- Overall -->
+  <div class="overall">
+    <div class="score-circle">
+      <span class="num" id="overallScore">62</span>
+      <span class="label">SCORE</span>
+    </div>
+    <div class="overall-text">
+      <h2>全体達成率 <span id="overallPct">62%</span> &nbsp;<span class="pulse"></span></h2>
+      <p id="overallMsg">4事業中2事業が目標達成中。訪問看護・A型の稼働率改善が最優先アクション。</p>
+    </div>
+  </div>
+
+  <!-- Top actions -->
+  <div class="top-actions">
+    <button class="edit-btn" onclick="openEditModal()">✏️ 数値を更新する</button>
+    <button class="edit-btn" onclick="openActionModal()">＋ アクションを追加</button>
+  </div>
+
+  <!-- Businesses -->
+  <div class="section-title">事業別 GAP分析</div>
+  <div class="businesses" id="bizGrid"></div>
+
+  <!-- Action board -->
+  <div class="action-section">
+    <div class="section-title">今月のアクション一覧</div>
+    <div class="action-table" id="actionTable"></div>
+  </div>
+
+    <div class="action-section">
+    <div class="section-title">担当者別 業務負担</div>
+    <div class="workload-wrap" id="workloadChart"></div>
+  </div>
+
+  <p class="hint">💡 スプレッドシートを編集 → 「更新」ボタンで最新データを反映</p>
+
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>📊 <span id="editModalTitle">数値を更新</span></h3>
+    <div class="modal-field">
+      <label>事業</label>
+      <select id="editBizSelect"></select>
+    </div>
+    <div class="modal-field">
+      <label>指標</label>
+      <select id="editKpiSelect"></select>
+    </div>
+    <div class="modal-field">
+      <label>目標値</label>
+      <input type="text" id="editTarget" placeholder="例: 100万円">
+    </div>
+    <div class="modal-field">
+      <label>現状値</label>
+      <input type="text" id="editActual" placeholder="例: 75万円">
+    </div>
+    <div class="modal-field">
+      <label>達成率 (%)</label>
+      <input type="number" id="editPct" min="0" max="200" placeholder="75">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModals()">キャンセル</button>
+      <button class="btn-primary" onclick="saveEdit()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Action modal -->
+<div class="modal-overlay" id="actionModal">
+  <div class="modal">
+    <h3>＋ アクションを追加</h3>
+    <div class="modal-field">
+      <label>アクション内容</label>
+      <textarea id="newActionText" placeholder="例: 新規利用者の獲得施策を実施する"></textarea>
+    </div>
+    <div class="modal-field">
+      <label>関連事業</label>
+      <select id="newActionBiz"></select>
+    </div>
+    <div class="modal-field">
+      <label>担当者・期限</label>
+      <input type="text" id="newActionMeta" placeholder="例: 社長 / 5/31">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModals()">キャンセル</button>
+      <button class="btn-primary" onclick="saveAction()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 設定 ──────────────────────────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxAX7ipNVkZs-VOPRBEr91ckzGql2ewv_oF7PrKVLZpeHBJ_jfmTojSn8m9iJjaeJER/exec';
+const SHEET_ID = '1-HyJzBy38yGdQarGjZ8BIy8oKkTAiHRWpt-cxvZeOaU';
+
+const bizColors = ['#f97316','#3b82f6','#10b981','#a855f7'];
+const bizIcons  = ['🤖','🏥','🌱','🌻'];
+const bizSubs   = {
+  'タスケテAI': 'AIサービス事業',
+  '訪問看護':   '医療・介護事業',
+  'A型支援':    '就労継続支援A型',
+  'B型支援':    '就労継続支援B型',
+};
+
+let businesses = [];
+let actions    = [];
+
+const statusCycle = ['todo','doing','done'];
+const statusLabel  = { todo:'未着手', doing:'進行中', done:'完了' };
+const statusClass  = { todo:'status-todo', doing:'status-doing', done:'status-done' };
+
+// ── スプレッドシート読み込み ───────────────────────────
+async function loadFromSheets() {
+  showLoading(true);
+  try {
+    const res  = await fetch(GAS_URL);
+    const data = await res.json();
+
+    // KPI をビジネスごとにグループ化
+    const bizMap = {}, bizOrder = [];
+    data.kpi.forEach(({bizName, label, target, actual, pct}) => {
+      if (!bizName) return;
+      if (!bizMap[bizName]) {
+        bizMap[bizName] = { name: bizName, sub: bizSubs[bizName]||'', kpis: [] };
+        bizOrder.push(bizName);
+      }
+      bizMap[bizName].kpis.push({ label, target: String(target), actual: String(actual), pct: Number(pct)||0 });
+    });
+    businesses = bizOrder.map(n => bizMap[n]);
+
+    // アクション
+    const stMap = { '進行中':'doing', '未着手':'todo', '完了':'done' };
+    actions = data.actions.filter(a=>a.text).map(({text, bizName, assignee, deadline, status}) => ({
+      text,
+      assignee: String(assignee||''),
+      deadline: String(deadline||''),
+      biz: Math.max(0, businesses.findIndex(b=>b.name===bizName)),
+      status: stMap[status]||'todo'
+    }));
+
+    render();
+    showToast('🔄 最新データを読み込みました', '#3b82f6');
+  } catch(e) {
+    console.error(e);
+    document.getElementById('bizGrid').innerHTML =
+      '<div style="grid-column:1/-1;color:#ef4444;font-size:13px;padding:20px">⚠️ 読み込み失敗。しばらく待ってから「更新」ボタンを押してください。</div>';
+  }
+  showLoading(false);
+}
+
+function showLoading(on) {
+  let el = document.getElementById('loadBar');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loadBar';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f97316,#3b82f6,#10b981);z-index:9999;transition:opacity 0.4s';
+    document.body.appendChild(el);
+  }
+  el.style.opacity = on ? '1' : '0';
+}
+
+function showToast(msg, color='#10b981') {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;font-family:"Noto Sans JP",sans-serif;color:#fff;white-space:nowrap';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = color;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.style.opacity='0', 2000);
+}
+
+function refreshData() { loadFromSheets(); }
+
+// ── 描画 ──────────────────────────────────────────────
+function getGap(pct) {
+  if (pct >= 100) return { cls:'gap-ok',  label:'✅ 達成' };
+  if (pct >= 80)  return { cls:'gap-mid', label:`⚠️ GAP -${100-pct}%` };
+  return              { cls:'gap-warn', label:`🔴 GAP -${100-pct}%` };
+}
+
+function avgPct(i) {
+  const b = businesses[i];
+  if (!b||!b.kpis.length) return 0;
+  return Math.round(b.kpis.reduce((s,k)=>s+k.pct,0)/b.kpis.length);
+}
+
+function renderBizGrid() {
+  const grid = document.getElementById('bizGrid');
+  if (!businesses.length) { grid.innerHTML=''; return; }
+  grid.innerHTML = businesses.map((b,i) => {
+    const avg = avgPct(i), gap = getGap(avg);
+    const kpiRows = b.kpis.map(k => {
+      const cls = k.pct>=100?'ok':k.pct>=80?'mid':'warn';
+      return `<div class="kpi-row">
+        <span class="kpi-label">${k.label}</span>
+        <span class="kpi-values">
+          <span class="kpi-target">${k.target}</span>
+          <span class="kpi-arrow">→</span>
+          <span class="kpi-actual ${cls}">${k.actual}</span>
+        </span>
+      </div>
+      <div class="prog-bar"><div class="fill" style="width:${Math.min(k.pct,100)}%"></div></div>`;
+    }).join('');
+    return `<div class="biz-card" style="--card-color:${bizColors[i]||'#888'}">
+      <div class="biz-icon">${bizIcons[i]||'🏢'}</div>
+      <div class="biz-name">${b.name}</div>
+      <div class="biz-sub">${b.sub}</div>
+      ${kpiRows}
+      <span class="gap-badge ${gap.cls}">${gap.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function getDeadlineInfo(deadline) {
+  if (!deadline) return { label: '-', cls: '', days: null };
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  // Parse M/d format using current year
+  // yyyy/M/d または M/d 形式に対応
+  const parts = String(deadline).split('/');
+  if (parts.length < 2) return { label: deadline, cls: '', days: null };
+  let year, month, day;
+  if (parts.length === 3) {
+    year  = parseInt(parts[0]);
+    month = parseInt(parts[1]);
+    day   = parseInt(parts[2]);
+  } else {
+    year  = now.getFullYear();
+    month = parseInt(parts[0]);
+    day   = parseInt(parts[1]);
+  }
+  const d = new Date(year, month-1, day);
+  const diff = Math.floor((d - now) / (1000*60*60*24));
+  if (diff < 0)  return { label: deadline, cls: 'deadline-over',  days: diff, icon: '🟥' };
+  if (diff <= 3) return { label: deadline, cls: 'deadline-near',  days: diff, icon: '🟡' };
+  return           { label: deadline, cls: 'deadline-ok',    days: diff, icon: '🟢' };
+}
+
+function renderActions() {
+  const table = document.getElementById('actionTable');
+  if (!actions.length) { table.innerHTML='<div style="padding:20px;color:var(--text3);font-size:13px;text-align:center">アクションがありません</div>'; return; }
+
+  table.innerHTML = actions.map((a,i) => {
+    const biz = businesses[a.biz] || { name:'-' };
+    const col = bizColors[a.biz] || '#888';
+    const dl  = getDeadlineInfo(a.deadline);
+    return `<div class="action-row ${dl.cls}">
+      <span class="action-num">${String(i+1).padStart(2,'0')}</span>
+      <div class="action-text">
+        ${a.text}
+        <small>
+          <span class="assignee-tag">👤 ${a.assignee||'-'}</span>
+          <span class="deadline-tag ${dl.cls}">${dl.icon||''} ${dl.label}</span>
+        </small>
+      </div>
+      <span class="action-biz" style="background:${col}22;color:${col}">${biz.name}</span>
+      <span class="action-status ${statusClass[a.status]}">${statusLabel[a.status]}</span>
+    </div>`;
+  }).join('');
+
+  renderWorkload();
+}
+
+function renderWorkload() {
+  const container = document.getElementById('workloadChart');
+  if (!container) return;
+
+  // 担当者ごとの件数集計
+  const map = {};
+  actions.forEach(a => {
+    if (!a.assignee) return;
+    if (!map[a.assignee]) map[a.assignee] = { total:0, done:0, biz: a.biz };
+    map[a.assignee].total++;
+    if (a.status === 'done') map[a.assignee].done++;
+  });
+
+  const entries = Object.entries(map).sort((a,b) => b[1].total - a[1].total);
+  if (!entries.length) { container.innerHTML=''; return; }
+  const max = entries[0][1].total;
+
+  container.innerHTML = entries.map(([name, data]) => {
+    const col = bizColors[data.biz] || '#888';
+    const pct = Math.round((data.total / max) * 100);
+    return `<div class="wl-row">
+      <span class="wl-name">👤 ${name}</span>
+      <div class="wl-bar-wrap">
+        <div class="wl-bar" style="width:${pct}%;background:${col}"></div>
+      </div>
+      <span class="wl-count">${data.total}件</span>
+    </div>`;
+  }).join('');
+}
+
+function renderOverall() {
+  if (!businesses.length) return;
+  const allPcts = businesses.map((_,i)=>avgPct(i));
+  const overall = Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length);
+  document.getElementById('overallScore').textContent = overall;
+  document.getElementById('overallPct').textContent   = overall+'%';
+  const achieved = allPcts.filter(p=>p>=100).length;
+  const msgs = [
+    '全事業が目標未達です。各事業の最優先アクションを今すぐ実施しましょう。',
+    `4事業中${achieved}事業が目標達成中。残り${4-achieved}事業の改善が急務です。`,
+    `4事業中${achieved}事業が目標達成中。${4-achieved}事業の追い込みをかけましょう！`,
+    '3事業が目標を達成！残り1事業の最終追い込みが今月の焦点です。',
+    '全事業が目標達成！素晴らしい成果です。来月の目標設定に進みましょう。',
+  ];
+  document.getElementById('overallMsg').textContent = msgs[Math.min(achieved,4)];
+}
+
+function render() { renderBizGrid(); renderActions(); renderOverall(); }
+
+// ── アクション ステータス切り替え ────────────────────────
+function cycleStatus(idx) {
+  const cur = statusCycle.indexOf(actions[idx].status);
+  actions[idx].status = statusCycle[(cur+1)%3];
+  renderActions();
+  showToast('✅ ステータスを更新しました（スプレッドシートも変更してください）', '#f97316');
+}
+
+// ── モーダル（編集・追加はスプレッドシートで行う案内） ───────
+function openEditModal() {
+  showToast('📝 スプレッドシートで数値を編集後、「更新」ボタンを押してください', '#3b82f6');
+  window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`, '_blank');
+}
+
+function openActionModal() {
+  showToast('📝 スプレッドシートでアクションを追加後、「更新」ボタンを押してください', '#3b82f6');
+  window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`, '_blank');
+}
+
+function closeModals() {}
+
+// ── Init ──────────────────────────────────────────────
+const d = new Date();
+document.getElementById('currentDate').textContent =
+  `${d.getMonth()+1}/${d.getDate()} (${['日','月','火','水','木','金','土'][d.getDay()]})`;
+document.querySelector('.date-badge .month').textContent = `${d.getFullYear()}年${d.getMonth()+1}月`;
+
+// ボタンのラベルを更新
+document.querySelector('.top-actions').innerHTML = `
+  <button class="edit-btn" onclick="refreshData()">🔄 最新データに更新</button>
+  <button class="edit-btn" onclick="openEditModal()">✏️ スプレッドシートを編集</button>
+`;
+
+loadFromSheets();
+</script>
+</body>
+</html>
