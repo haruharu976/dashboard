@@ -717,7 +717,7 @@ async function loadFromSheets() {
     // KPI をビジネスごとにグループ化
     const bizMap = {}, bizOrder = [];
     data.kpi.forEach(({bizName, label, target, actual, pct}) => {
-      if (!bizName) return;
+      if (!bizName || !label) return;
       if (!bizMap[bizName]) {
         bizMap[bizName] = { name: bizName, sub: bizSubs[bizName]||'', kpis: [] };
         bizOrder.push(bizName);
@@ -728,7 +728,7 @@ async function loadFromSheets() {
 
     // アクション
     const stMap = { '進行中':'doing', '未着手':'todo', '完了':'done' };
-    actions = data.actions.filter(a=>a.text).map(({text, bizName, assignee, deadline, status}) => ({
+    actions = data.actions.filter(a=>a.text && a.deadline).map(({text, bizName, assignee, deadline, status}) => ({
       text,
       assignee: String(assignee||''),
       deadline: String(deadline||''),
