@@ -3,950 +3,795 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI会社 経営ダッシュボード</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>HumaniX AI — 経営ダッシュボード</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0e1a;
-    --surface: #111827;
-    --surface2: #1a2235;
-    --border: #1e2d47;
-    --accent: #f97316;
-    --accent2: #3b82f6;
-    --accent3: #10b981;
-    --accent4: #a855f7;
-    --warn: #ef4444;
-    --text: #f1f5f9;
-    --text2: #94a3b8;
-    --text3: #475569;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans JP', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Background grid */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .wrapper {
-    position: relative;
-    z-index: 1;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 24px 16px 60px;
-  }
-
-  /* Header */
-  header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 32px;
-    gap: 16px;
-  }
-
-  .header-left h1 {
-    font-size: clamp(20px, 4vw, 28px);
-    font-weight: 900;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-  }
-
-  .header-left h1 span {
-    color: var(--accent);
-  }
-
-  .header-left p {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-    margin-top: 6px;
-    letter-spacing: 0.1em;
-  }
-
-  .date-badge {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 14px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  .date-badge .date {
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    color: var(--accent2);
-    font-weight: 700;
-  }
-
-  .date-badge .month {
-    font-size: 10px;
-    color: var(--text3);
-    margin-top: 2px;
-  }
-
-  /* Overall score */
-  .overall {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 24px;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .overall::after {
-    content: '';
-    position: absolute;
-    top: -40px;
-    right: -40px;
-    width: 160px;
-    height: 160px;
-    background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .score-circle {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    border: 3px solid var(--accent);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .score-circle .num {
-    font-family: 'Space Mono', monospace;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1;
-  }
-
-  .score-circle .label {
-    font-size: 9px;
-    color: var(--text3);
-    letter-spacing: 0.05em;
-  }
-
-  .overall-text h2 {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .overall-text p {
-    font-size: 13px;
-    color: var(--text2);
-    line-height: 1.7;
-  }
-
-  /* Section title */
-  .section-title {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    color: var(--text3);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  /* Business cards */
-  .businesses {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 28px;
-  }
-
-  @media (max-width: 500px) {
-    .businesses { grid-template-columns: 1fr; }
-  }
-
-  .biz-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color 0.2s, transform 0.2s;
-  }
-
-  .biz-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--card-color);
-  }
-
-  .biz-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--card-color);
-  }
-
-  .biz-card .biz-icon {
-    font-size: 22px;
-    margin-bottom: 10px;
-  }
-
-  .biz-card .biz-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--card-color);
-    margin-bottom: 2px;
-  }
-
-  .biz-card .biz-sub {
-    font-size: 10px;
-    color: var(--text3);
-    margin-bottom: 14px;
-  }
-
-  /* KPI rows */
-  .kpi-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .kpi-row .kpi-label {
-    font-size: 11px;
-    color: var(--text3);
-  }
-
-  .kpi-row .kpi-values {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-  }
-
-  .kpi-row .kpi-target { color: var(--text2); }
-  .kpi-row .kpi-arrow { color: var(--text3); font-size: 9px; }
-  .kpi-row .kpi-actual { font-weight: 700; }
-  .kpi-row .kpi-actual.ok { color: var(--accent3); }
-  .kpi-row .kpi-actual.warn { color: var(--warn); }
-  .kpi-row .kpi-actual.mid { color: var(--accent); }
-
-  /* Progress bar */
-  .prog-bar {
-    height: 4px;
-    background: var(--bg);
-    border-radius: 2px;
-    margin-bottom: 10px;
-    overflow: hidden;
-  }
-
-  .prog-bar .fill {
-    height: 100%;
-    border-radius: 2px;
-    background: var(--card-color);
-    transition: width 1s ease;
-  }
-
-  /* GAP badge */
-  .gap-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    margin-top: 4px;
-  }
-
-  .gap-badge.gap-ok { background: rgba(16,185,129,0.15); color: var(--accent3); }
-  .gap-badge.gap-warn { background: rgba(239,68,68,0.15); color: var(--warn); }
-  .gap-badge.gap-mid { background: rgba(249,115,22,0.15); color: var(--accent); }
-
-  /* Action table */
-  .action-section {
-    margin-bottom: 28px;
-  }
-
-  .action-table {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-  }
-
-  .action-row {
-    display: grid;
-    grid-template-columns: 28px 1fr auto auto;
-    gap: 12px;
-    align-items: center;
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    transition: background 0.15s;
-    cursor: pointer;
-  }
-
-  .action-row:last-child { border-bottom: none; }
-  .action-row:hover { background: var(--surface2); }
-
-  .action-row .action-num {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-    text-align: center;
-  }
-
-  .action-row .action-text {
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  .action-row .action-text small {
-    display: block;
-    font-size: 11px;
-    color: var(--text3);
-    margin-top: 2px;
-  }
-
-  .action-row .action-biz {
-    font-size: 10px;
-    padding: 3px 7px;
-    border-radius: 4px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .action-row .action-status {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-  }
-
-  .status-todo { background: rgba(148,163,184,0.1); color: var(--text3); }
-  .status-doing { background: rgba(249,115,22,0.15); color: var(--accent); }
-  .status-done { background: rgba(16,185,129,0.15); color: var(--accent3); }
-
-  /* Edit mode */
-  .edit-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-family: 'Noto Sans JP', sans-serif;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .edit-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .top-actions {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-  }
-
-  /* Modal overlay */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px;
-    width: 100%;
-    max-width: 460px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  .modal h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .modal-field {
-    margin-bottom: 16px;
-  }
-
-  .modal-field label {
-    display: block;
-    font-size: 11px;
-    color: var(--text3);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .modal-field input, .modal-field select, .modal-field textarea {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: var(--text);
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
-    border-color: var(--accent2);
-  }
-
-  .modal-field textarea { min-height: 80px; resize: vertical; }
-
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 24px;
-  }
-
-  .btn-primary {
-    flex: 1;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 11px;
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-
-  .btn-primary:hover { opacity: 0.85; }
-
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text2);
-    border-radius: 8px;
-    padding: 11px 18px;
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    transition: border-color 0.2s;
-  }
-
-  .btn-ghost:hover { border-color: var(--text2); }
-
-  /* Pulse dot */
-  .pulse {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent3);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.3); }
-  }
-
-  /* Tooltip hint */
-  .hint {
-    font-size: 11px;
-    color: var(--text3);
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  /* Deadline colors */
-  .action-row.deadline-over { border-left: 3px solid #ef4444; }
-  .action-row.deadline-near { border-left: 3px solid #f59e0b; }
-  .action-row.deadline-ok   { border-left: 3px solid #10b981; }
-
-  .assignee-tag { color: var(--text3); margin-right: 8px; }
-  .deadline-tag { font-weight: 600; }
-  .deadline-tag.deadline-over { color: #ef4444; }
-  .deadline-tag.deadline-near { color: #f59e0b; }
-  .deadline-tag.deadline-ok   { color: #10b981; }
-
-  /* Workload chart */
-  .workload-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px 20px;
-  }
-
-  .wl-row {
-    display: grid;
-    grid-template-columns: 100px 1fr 40px;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-
-  .wl-row:last-child { margin-bottom: 0; }
-
-  .wl-name {
-    font-size: 12px;
-    color: var(--text2);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .wl-bar-wrap {
-    height: 8px;
-    background: var(--bg);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .wl-bar {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.8s ease;
-  }
-
-  .wl-count {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-    text-align: right;
-  }
+:root {
+  --bg: #040810;
+  --surface: #080f1e;
+  --surface2: #0d1628;
+  --border: #1a2d4a;
+  --border2: #0f2040;
+  --accent: #00d4ff;
+  --accent2: #7b2fff;
+  --accent3: #00ff9d;
+  --warn: #ff4d6d;
+  --warn2: #ff9500;
+  --text: #e8f4ff;
+  --text2: #7a9bc4;
+  --text3: #3a5878;
+  --glow: rgba(0,212,255,0.15);
+  --glow2: rgba(123,47,255,0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at 30% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(123,47,255,0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: bgPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.05); }
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+/* Header */
+header {
+  padding: 24px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  position: relative;
+}
+
+.logo-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.logo-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(0,212,255,0.5);
+}
+
+.logo-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--accent3);
+  border: 1px solid rgba(0,255,157,0.3);
+  padding: 4px 10px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent3);
+  border-radius: 50%;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.date-display {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text2);
+  letter-spacing: 1px;
+}
+
+/* Section title */
+.section-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+@media (min-width: 640px) {
+  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 14px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.2s;
+  cursor: default;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-color, var(--accent));
+  box-shadow: 0 0 12px var(--card-color, var(--accent));
+}
+
+.kpi-card:hover {
+  border-color: var(--card-color, var(--accent));
+  transform: translateY(-2px);
+}
+
+.kpi-label {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  font-family: 'Share Tech Mono', monospace;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--card-color, var(--accent));
+  text-shadow: 0 0 20px var(--card-color, var(--accent));
+  margin-bottom: 6px;
+}
+
+.kpi-unit {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.kpi-sub {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* Progress bar */
+.progress-container {
+  margin-top: 10px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+
+.progress-track {
+  height: 3px;
+  background: var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--card-color, var(--accent));
+  box-shadow: 0 0 8px var(--card-color, var(--accent));
+  transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: progressLoad 1.5s ease-out forwards;
+}
+
+@keyframes progressLoad {
+  from { width: 0 !important; }
+}
+
+/* Business table */
+.business-section {
+  margin-bottom: 28px;
+}
+
+.business-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.business-card:hover {
+  border-color: var(--border2);
+}
+
+.business-header {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--surface2);
+}
+
+.business-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--accent);
+  flex: 1;
+}
+
+.business-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  padding: 3px 8px;
+  border: 1px solid;
+  letter-spacing: 1px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+}
+
+@media (min-width: 640px) {
+  .metrics-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.metric-cell {
+  padding: 14px 16px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.metric-cell:last-child { border-right: none; }
+
+.metric-name {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: 'Share Tech Mono', monospace;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.metric-values {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.metric-current {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.metric-target {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.metric-rate {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rate-low { color: var(--warn); }
+.rate-mid { color: var(--warn2); }
+.rate-high { color: var(--accent3); }
+
+.mini-bar {
+  height: 2px;
+  background: var(--border);
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.mini-fill {
+  height: 100%;
+  animation: progressLoad 1.5s ease-out forwards;
+}
+
+/* Task section */
+.task-section {
+  margin-bottom: 28px;
+}
+
+.task-list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.task-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border2);
+  transition: background 0.2s;
+}
+
+.task-item:last-child { border-bottom: none; }
+.task-item:hover { background: var(--surface2); }
+
+.task-name {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.task-purpose {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: 'Share Tech Mono', monospace;
+  margin-top: 2px;
+}
+
+.task-date {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+.task-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  padding: 3px 8px;
+  border: 1px solid;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.status-complete { color: var(--accent3); border-color: rgba(0,255,157,0.3); background: rgba(0,255,157,0.05); }
+.status-progress { color: var(--accent); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.05); }
+.status-pending { color: var(--warn2); border-color: rgba(255,149,0,0.3); background: rgba(255,149,0,0.05); }
+.status-verify { color: var(--accent2); border-color: rgba(123,47,255,0.3); background: rgba(123,47,255,0.05); }
+.status-daily { color: var(--text2); border-color: var(--border); }
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-brand {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--text3);
+}
+
+.footer-note {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+/* Scan line animation */
+.scanline {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
+  animation: scan 4s linear infinite;
+  pointer-events: none;
+  z-index: 100;
+}
+
+@keyframes scan {
+  0% { top: 0; opacity: 1; }
+  95% { opacity: 0.3; }
+  100% { top: 100vh; opacity: 0; }
+}
+
+/* Corner decorations */
+.corner-deco {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+  z-index: 50;
+}
+.corner-deco.tl { top: 12px; left: 12px; border-top: 1px solid var(--accent); border-left: 1px solid var(--accent); opacity: 0.4; }
+.corner-deco.tr { top: 12px; right: 12px; border-top: 1px solid var(--accent); border-right: 1px solid var(--accent); opacity: 0.4; }
+.corner-deco.bl { bottom: 12px; left: 12px; border-bottom: 1px solid var(--accent); border-left: 1px solid var(--accent); opacity: 0.4; }
+.corner-deco.br { bottom: 12px; right: 12px; border-bottom: 1px solid var(--accent); border-right: 1px solid var(--accent); opacity: 0.4; }
+
+/* Animate in */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.kpi-card { animation: fadeUp 0.5s ease-out both; }
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.1s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.2s; }
+
+.business-card { animation: fadeUp 0.5s ease-out both; }
+.business-card:nth-child(1) { animation-delay: 0.25s; }
+.business-card:nth-child(2) { animation-delay: 0.35s; }
+
+.task-item { animation: fadeUp 0.4s ease-out both; }
+.task-item:nth-child(1) { animation-delay: 0.3s; }
+.task-item:nth-child(2) { animation-delay: 0.35s; }
+.task-item:nth-child(3) { animation-delay: 0.4s; }
+.task-item:nth-child(4) { animation-delay: 0.45s; }
+.task-item:nth-child(5) { animation-delay: 0.5s; }
+.task-item:nth-child(6) { animation-delay: 0.55s; }
 </style>
 </head>
 <body>
-<div class="wrapper">
+
+<div class="scanline"></div>
+<div class="corner-deco tl"></div>
+<div class="corner-deco tr"></div>
+<div class="corner-deco bl"></div>
+<div class="corner-deco br"></div>
+
+<div class="container">
 
   <!-- Header -->
   <header>
-    <div class="header-left">
-      <h1>AI会社<br><span>経営ダッシュボード</span></h1>
-      <p>GAP ANALYSIS & ACTION BOARD</p>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="18,2 34,10 34,26 18,34 2,26 2,10" stroke="#00d4ff" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <polygon points="18,8 28,13 28,23 18,28 8,23 8,13" stroke="#00d4ff" stroke-width="1" fill="rgba(0,212,255,0.08)"/>
+          <circle cx="18" cy="18" r="4" fill="#00d4ff" opacity="0.8"/>
+          <line x1="18" y1="2" x2="18" y2="8" stroke="#00d4ff" stroke-width="1" opacity="0.6"/>
+          <line x1="18" y1="28" x2="18" y2="34" stroke="#00d4ff" stroke-width="1" opacity="0.6"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">HUMANIX — AI</div>
+        <div class="logo-sub">経営ダッシュボード / デモ版</div>
+      </div>
     </div>
-    <div class="date-badge">
-      <div class="date" id="currentDate">---</div>
-      <div class="month">2025年5月</div>
+    <div class="header-right">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        デモ版
+      </div>
+      <div class="date-display" id="dateDisplay"></div>
     </div>
   </header>
 
-  <!-- Overall -->
-  <div class="overall">
-    <div class="score-circle">
-      <span class="num" id="overallScore">62</span>
-      <span class="label">SCORE</span>
+  <!-- KPI Summary -->
+  <div class="section-title">概要 — KPI サマリー</div>
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-color: #00d4ff;">
+      <div class="kpi-label">問い合わせ数合計</div>
+      <div class="kpi-value">2<span class="kpi-unit"> / 13</span></div>
+      <div class="kpi-sub">目標: 問い合わせ数合計</div>
+      <div class="progress-container">
+        <div class="progress-label"><span>達成率</span><span>15%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:15%"></div></div>
+      </div>
     </div>
-    <div class="overall-text">
-      <h2>全体達成率 <span id="overallPct">62%</span> &nbsp;<span class="pulse"></span></h2>
-      <p id="overallMsg">4事業中2事業が目標達成中。訪問看護・A型の稼働率改善が最優先アクション。</p>
+    <div class="kpi-card" style="--card-color: #7b2fff;">
+      <div class="kpi-label">契約社数合計</div>
+      <div class="kpi-value">0<span class="kpi-unit"> / 8</span></div>
+      <div class="kpi-sub">目標: 契約社数合計</div>
+      <div class="progress-container">
+        <div class="progress-label"><span>達成率</span><span>0%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--card-color: #00ff9d;">
+      <div class="kpi-label">ヒアリング数</div>
+      <div class="kpi-value">2<span class="kpi-unit"> / 30</span></div>
+      <div class="kpi-sub">目標: ヒアリング数</div>
+      <div class="progress-container">
+        <div class="progress-label"><span>達成率</span><span>7%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:7%"></div></div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--card-color: #ff9500;">
+      <div class="kpi-label">月間売上</div>
+      <div class="kpi-value">¥0</div>
+      <div class="kpi-sub">目標: ¥100,000</div>
+      <div class="progress-container">
+        <div class="progress-label"><span>達成率</span><span>0%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business KPI -->
+  <div class="business-section">
+    <div class="section-title">事業部門 — KPI 詳細</div>
+
+    <!-- AI開発 -->
+    <div class="business-card">
+      <div class="business-header">
+        <div class="business-name">AI 開発</div>
+        <div class="business-tag" style="color:#00d4ff; border-color:rgba(0,212,255,0.3);">AI 開発</div>
+        <div class="business-tag" style="color:#ff9500; border-color:rgba(255,149,0,0.3);">期限 2026.7</div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-cell">
+          <div class="metric-name">問い合わせ数</div>
+          <div class="metric-values">
+            <span class="metric-current">2</span>
+            <span class="metric-target">/ 10</span>
+          </div>
+          <div class="metric-rate rate-low">20%</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:20%; background:#00d4ff; box-shadow: 0 0 6px #00d4ff;"></div></div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-name">ヒアリング数</div>
+          <div class="metric-values">
+            <span class="metric-current">2</span>
+            <span class="metric-target">/ 30</span>
+          </div>
+          <div class="metric-rate rate-low">7%</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:7%; background:#00d4ff; box-shadow: 0 0 6px #00d4ff;"></div></div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-name">契約社数</div>
+          <div class="metric-values">
+            <span class="metric-current">0</span>
+            <span class="metric-target">/ 5</span>
+          </div>
+          <div class="metric-rate rate-low">0%</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:0%; background:#00d4ff;"></div></div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-name">月売上</div>
+          <div class="metric-values">
+            <span class="metric-current">¥0</span>
+            <span class="metric-target">/ ¥100K</span>
+          </div>
+          <div class="metric-rate rate-low">0%</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:0%; background:#00d4ff;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AIコンサル -->
+    <div class="business-card">
+      <div class="business-header">
+        <div class="business-name">AI コンサル</div>
+        <div class="business-tag" style="color:#7b2fff; border-color:rgba(123,47,255,0.3);">AI コンサル</div>
+        <div class="business-tag" style="color:#ff9500; border-color:rgba(255,149,0,0.3);">期限 2026.8</div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-cell">
+          <div class="metric-name">契約社数</div>
+          <div class="metric-values">
+            <span class="metric-current">0</span>
+            <span class="metric-target">/ 1</span>
+          </div>
+          <div class="metric-rate rate-low">0%</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:0%; background:#7b2fff;"></div></div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-name">問い合わせ数</div>
+          <div class="metric-values">
+            <span class="metric-current">0</span>
+            <span class="metric-target">/ 3</span>
+          </div>
+          <div class="metric-rate rate-low">0%</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:0%; background:#7b2fff;"></div></div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-name">継続率</div>
+          <div class="metric-values">
+            <span class="metric-current">0</span>
+            <span class="metric-target">/ 2</span>
+          </div>
+          <div class="metric-rate rate-low">0%</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:0%; background:#7b2fff;"></div></div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-name">目的</div>
+          <div style="margin-top:8px;">
+            <div style="font-size:10px; color:var(--text2); font-family:'Share Tech Mono',monospace; margin-bottom:4px;">顧客獲得</div>
+            <div style="font-size:10px; color:var(--text2); font-family:'Share Tech Mono',monospace; margin-bottom:4px;">集客</div>
+            <div style="font-size:10px; color:var(--text2); font-family:'Share Tech Mono',monospace;">信頼構築</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Top actions -->
-  <div class="top-actions">
-    <button class="edit-btn" onclick="openEditModal()">✏️ 数値を更新する</button>
-    <button class="edit-btn" onclick="openActionModal()">＋ アクションを追加</button>
-  </div>
-
-  <!-- Businesses -->
-  <div class="section-title">事業別 GAP分析</div>
-  <div class="businesses" id="bizGrid"></div>
-
-  <!-- Action board -->
-  <div class="action-section">
-    <div class="section-title">今月のアクション一覧</div>
-    <div class="action-table" id="actionTable"></div>
-  </div>
-
-    <div class="action-section">
-    <div class="section-title">担当者別 業務負担</div>
-    <div class="workload-wrap" id="workloadChart"></div>
-  </div>
-
-  <p class="hint">💡 スプレッドシートを編集 → 「更新」ボタンで最新データを反映</p>
-
-</div>
-
-<!-- Edit modal -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal">
-    <h3>📊 <span id="editModalTitle">数値を更新</span></h3>
-    <div class="modal-field">
-      <label>事業</label>
-      <select id="editBizSelect"></select>
-    </div>
-    <div class="modal-field">
-      <label>指標</label>
-      <select id="editKpiSelect"></select>
-    </div>
-    <div class="modal-field">
-      <label>目標値</label>
-      <input type="text" id="editTarget" placeholder="例: 100万円">
-    </div>
-    <div class="modal-field">
-      <label>現状値</label>
-      <input type="text" id="editActual" placeholder="例: 75万円">
-    </div>
-    <div class="modal-field">
-      <label>達成率 (%)</label>
-      <input type="number" id="editPct" min="0" max="200" placeholder="75">
-    </div>
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModals()">キャンセル</button>
-      <button class="btn-primary" onclick="saveEdit()">保存する</button>
-    </div>
-  </div>
-</div>
-
-<!-- Action modal -->
-<div class="modal-overlay" id="actionModal">
-  <div class="modal">
-    <h3>＋ アクションを追加</h3>
-    <div class="modal-field">
-      <label>アクション内容</label>
-      <textarea id="newActionText" placeholder="例: 新規利用者の獲得施策を実施する"></textarea>
-    </div>
-    <div class="modal-field">
-      <label>関連事業</label>
-      <select id="newActionBiz"></select>
-    </div>
-    <div class="modal-field">
-      <label>担当者・期限</label>
-      <input type="text" id="newActionMeta" placeholder="例: 社長 / 5/31">
-    </div>
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModals()">キャンセル</button>
-      <button class="btn-primary" onclick="saveAction()">追加する</button>
+  <!-- Task Board -->
+  <div class="task-section">
+    <div class="section-title">タスクボード — 現在のアクション</div>
+    <div class="task-list">
+      <div class="task-item">
+        <div>
+          <div class="task-name">AI会社LP作成</div>
+          <div class="task-purpose">目的: 集客</div>
+        </div>
+        <div class="task-date">5/25</div>
+        <div class="task-status status-pending">未着手</div>
+      </div>
+      <div class="task-item">
+        <div>
+          <div class="task-name">就労支援デモ完成</div>
+          <div class="task-purpose">目的: 実績化</div>
+        </div>
+        <div class="task-date">5/27</div>
+        <div class="task-status status-pending">未着手</div>
+      </div>
+      <div class="task-item">
+        <div>
+          <div class="task-name">Obsidian AI社員整理</div>
+          <div class="task-purpose">目的: AI会社OS</div>
+        </div>
+        <div class="task-date">5/30</div>
+        <div class="task-status status-pending">未着手</div>
+      </div>
+      <div class="task-item">
+        <div>
+          <div class="task-name">X投稿継続</div>
+          <div class="task-purpose">目的: 認知拡大</div>
+        </div>
+        <div class="task-date">毎日</div>
+        <div class="task-status status-daily">毎日</div>
+      </div>
+      <div class="task-item">
+        <div>
+          <div class="task-name">AI社員化</div>
+          <div class="task-purpose">目的: 組織化</div>
+        </div>
+        <div class="task-date">—</div>
+        <div class="task-status status-progress">進行中</div>
+      </div>
+      <div class="task-item">
+        <div>
+          <div class="task-name">MCP連携</div>
+          <div class="task-purpose">目的: 自動化基盤</div>
+        </div>
+        <div class="task-date">—</div>
+        <div class="task-status status-verify">検証中</div>
+      </div>
+      <div class="task-item">
+        <div>
+          <div class="task-name">Obsidian構築</div>
+          <div class="task-purpose">目的: ナレッジ管理</div>
+        </div>
+        <div class="task-date">—</div>
+        <div class="task-status status-complete">完了</div>
+      </div>
+      <div class="task-item">
+        <div>
+          <div class="task-name">Claude連携</div>
+          <div class="task-purpose">目的: AI活用基盤</div>
+        </div>
+        <div class="task-date">—</div>
+        <div class="task-status status-complete">完了</div>
+      </div>
     </div>
   </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-brand">HUMANIX — AI © 2026</div>
+    <div class="footer-note">デモデータ / 機密情報なし</div>
+  </footer>
+
 </div>
 
 <script>
-// ── 設定 ──────────────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxAX7ipNVkZs-VOPRBEr91ckzGql2ewv_oF7PrKVLZpeHBJ_jfmTojSn8m9iJjaeJER/exec';
-const SHEET_ID = '1-HyJzBy38yGdQarGjZ8BIy8oKkTAiHRWpt-cxvZeOaU';
-
-const bizColors = ['#f97316','#3b82f6','#10b981','#a855f7'];
-const bizIcons  = ['🤖','🏥','🌱','🌻'];
-const bizSubs   = {
-  'タスケテAI': 'AIサービス事業',
-  '訪問看護':   '医療・介護事業',
-  'A型支援':    '就労継続支援A型',
-  'B型支援':    '就労継続支援B型',
-};
-
-let businesses = [];
-let actions    = [];
-
-const statusCycle = ['todo','doing','done'];
-const statusLabel  = { todo:'未着手', doing:'進行中', done:'完了' };
-const statusClass  = { todo:'status-todo', doing:'status-doing', done:'status-done' };
-
-// ── スプレッドシート読み込み ───────────────────────────
-async function loadFromSheets() {
-  showLoading(true);
-  try {
-    const res  = await fetch(GAS_URL);
-    const data = await res.json();
-
-    // KPI をビジネスごとにグループ化
-    const bizMap = {}, bizOrder = [];
-    data.kpi.forEach(({bizName, label, target, actual, pct}) => {
-      if (!bizName || !label) return;
-      if (!bizMap[bizName]) {
-        bizMap[bizName] = { name: bizName, sub: bizSubs[bizName]||'', kpis: [] };
-        bizOrder.push(bizName);
-      }
-      bizMap[bizName].kpis.push({ label, target: String(target), actual: String(actual), pct: Number(pct)||0 });
-    });
-    businesses = bizOrder.map(n => bizMap[n]);
-
-    // アクション
-    const stMap = { '進行中':'doing', '未着手':'todo', '完了':'done' };
-    actions = data.actions.filter(a=>a.text && a.deadline).map(({text, bizName, assignee, deadline, status}) => ({
-      text,
-      assignee: String(assignee||''),
-      deadline: String(deadline||''),
-      biz: Math.max(0, businesses.findIndex(b=>b.name===bizName)),
-      status: stMap[status]||'todo'
-    }));
-
-    render();
-    showToast('🔄 最新データを読み込みました', '#3b82f6');
-  } catch(e) {
-    console.error(e);
-    document.getElementById('bizGrid').innerHTML =
-      '<div style="grid-column:1/-1;color:#ef4444;font-size:13px;padding:20px">⚠️ 読み込み失敗。しばらく待ってから「更新」ボタンを押してください。</div>';
-  }
-  showLoading(false);
-}
-
-function showLoading(on) {
-  let el = document.getElementById('loadBar');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'loadBar';
-    el.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f97316,#3b82f6,#10b981);z-index:9999;transition:opacity 0.4s';
-    document.body.appendChild(el);
-  }
-  el.style.opacity = on ? '1' : '0';
-}
-
-function showToast(msg, color='#10b981') {
-  let t = document.getElementById('toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'toast';
-    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;font-family:"Noto Sans JP",sans-serif;color:#fff;white-space:nowrap';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.style.background = color;
-  t.style.opacity = '1';
-  clearTimeout(t._t);
-  t._t = setTimeout(() => t.style.opacity='0', 2000);
-}
-
-function refreshData() { loadFromSheets(); }
-
-// ── 描画 ──────────────────────────────────────────────
-function getGap(pct) {
-  if (pct >= 100) return { cls:'gap-ok',  label:'✅ 達成' };
-  if (pct >= 80)  return { cls:'gap-mid', label:`⚠️ GAP -${100-pct}%` };
-  return              { cls:'gap-warn', label:`🔴 GAP -${100-pct}%` };
-}
-
-function avgPct(i) {
-  const b = businesses[i];
-  if (!b||!b.kpis.length) return 0;
-  return Math.round(b.kpis.reduce((s,k)=>s+k.pct,0)/b.kpis.length);
-}
-
-function renderBizGrid() {
-  const grid = document.getElementById('bizGrid');
-  if (!businesses.length) { grid.innerHTML=''; return; }
-  grid.innerHTML = businesses.map((b,i) => {
-    const avg = avgPct(i), gap = getGap(avg);
-    const kpiRows = b.kpis.map(k => {
-      const cls = k.pct>=100?'ok':k.pct>=80?'mid':'warn';
-      return `<div class="kpi-row">
-        <span class="kpi-label">${k.label}</span>
-        <span class="kpi-values">
-          <span class="kpi-target">${k.target}</span>
-          <span class="kpi-arrow">→</span>
-          <span class="kpi-actual ${cls}">${k.actual}</span>
-        </span>
-      </div>
-      <div class="prog-bar"><div class="fill" style="width:${Math.min(k.pct,100)}%"></div></div>`;
-    }).join('');
-    return `<div class="biz-card" style="--card-color:${bizColors[i]||'#888'}">
-      <div class="biz-icon">${bizIcons[i]||'🏢'}</div>
-      <div class="biz-name">${b.name}</div>
-      <div class="biz-sub">${b.sub}</div>
-      ${kpiRows}
-      <span class="gap-badge ${gap.cls}">${gap.label}</span>
-    </div>`;
-  }).join('');
-}
-
-function getDeadlineInfo(deadline) {
-  if (!deadline) return { label: '-', cls: '', days: null };
+// Date display
+function updateDate() {
   const now = new Date();
-  now.setHours(0,0,0,0);
-  // Parse M/d format using current year
-  // yyyy/M/d または M/d 形式に対応
-  const parts = String(deadline).split('/');
-  if (parts.length < 2) return { label: deadline, cls: '', days: null };
-  let year, month, day;
-  if (parts.length === 3) {
-    year  = parseInt(parts[0]);
-    month = parseInt(parts[1]);
-    day   = parseInt(parts[2]);
-  } else {
-    year  = now.getFullYear();
-    month = parseInt(parts[0]);
-    day   = parseInt(parts[1]);
-  }
-  const d = new Date(year, month-1, day);
-  const diff = Math.floor((d - now) / (1000*60*60*24));
-  if (diff < 0)  return { label: deadline, cls: 'deadline-over',  days: diff, icon: '🟥' };
-  if (diff <= 3) return { label: deadline, cls: 'deadline-near',  days: diff, icon: '🟡' };
-  return           { label: deadline, cls: 'deadline-ok',    days: diff, icon: '🟢' };
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  const h = String(now.getHours()).padStart(2,'0');
+  const min = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('dateDisplay').textContent = `${y}.${m}.${d} ${h}:${min}:${s}`;
 }
-
-function renderActions() {
-  const table = document.getElementById('actionTable');
-  if (!actions.length) { table.innerHTML='<div style="padding:20px;color:var(--text3);font-size:13px;text-align:center">アクションがありません</div>'; return; }
-
-  table.innerHTML = actions.map((a,i) => {
-    const biz = businesses[a.biz] || { name:'-' };
-    const col = bizColors[a.biz] || '#888';
-    const dl  = getDeadlineInfo(a.deadline);
-    return `<div class="action-row ${dl.cls}">
-      <span class="action-num">${String(i+1).padStart(2,'0')}</span>
-      <div class="action-text">
-        ${a.text}
-        <small>
-          <span class="assignee-tag">👤 ${a.assignee||'-'}</span>
-          <span class="deadline-tag ${dl.cls}">${dl.icon||''} ${dl.label}</span>
-        </small>
-      </div>
-      <span class="action-biz" style="background:${col}22;color:${col}">${biz.name}</span>
-      <span class="action-status ${statusClass[a.status]}">${statusLabel[a.status]}</span>
-    </div>`;
-  }).join('');
-
-  renderWorkload();
-}
-
-function renderWorkload() {
-  const container = document.getElementById('workloadChart');
-  if (!container) return;
-
-  // 担当者ごとの件数集計
-  const map = {};
-  actions.forEach(a => {
-    if (!a.assignee) return;
-    if (!map[a.assignee]) map[a.assignee] = { total:0, done:0, biz: a.biz };
-    map[a.assignee].total++;
-    if (a.status === 'done') map[a.assignee].done++;
-  });
-
-  const entries = Object.entries(map).sort((a,b) => b[1].total - a[1].total);
-  if (!entries.length) { container.innerHTML=''; return; }
-  const max = entries[0][1].total;
-
-  container.innerHTML = entries.map(([name, data]) => {
-    const col = bizColors[data.biz] || '#888';
-    const pct = Math.round((data.total / max) * 100);
-    return `<div class="wl-row">
-      <span class="wl-name">👤 ${name}</span>
-      <div class="wl-bar-wrap">
-        <div class="wl-bar" style="width:${pct}%;background:${col}"></div>
-      </div>
-      <span class="wl-count">${data.total}件</span>
-    </div>`;
-  }).join('');
-}
-
-function renderOverall() {
-  if (!businesses.length) return;
-  const allPcts = businesses.map((_,i)=>avgPct(i));
-  const overall = Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length);
-  document.getElementById('overallScore').textContent = overall;
-  document.getElementById('overallPct').textContent   = overall+'%';
-  const achieved = allPcts.filter(p=>p>=100).length;
-  const msgs = [
-    '全事業が目標未達です。各事業の最優先アクションを今すぐ実施しましょう。',
-    `4事業中${achieved}事業が目標達成中。残り${4-achieved}事業の改善が急務です。`,
-    `4事業中${achieved}事業が目標達成中。${4-achieved}事業の追い込みをかけましょう！`,
-    '3事業が目標を達成！残り1事業の最終追い込みが今月の焦点です。',
-    '全事業が目標達成！素晴らしい成果です。来月の目標設定に進みましょう。',
-  ];
-  document.getElementById('overallMsg').textContent = msgs[Math.min(achieved,4)];
-}
-
-function render() { renderBizGrid(); renderActions(); renderOverall(); }
-
-// ── アクション ステータス切り替え ────────────────────────
-function cycleStatus(idx) {
-  const cur = statusCycle.indexOf(actions[idx].status);
-  actions[idx].status = statusCycle[(cur+1)%3];
-  renderActions();
-  showToast('✅ ステータスを更新しました（スプレッドシートも変更してください）', '#f97316');
-}
-
-// ── モーダル（編集・追加はスプレッドシートで行う案内） ───────
-function openEditModal() {
-  showToast('📝 スプレッドシートで数値を編集後、「更新」ボタンを押してください', '#3b82f6');
-  window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`, '_blank');
-}
-
-function openActionModal() {
-  showToast('📝 スプレッドシートでアクションを追加後、「更新」ボタンを押してください', '#3b82f6');
-  window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`, '_blank');
-}
-
-function closeModals() {}
-
-// ── Init ──────────────────────────────────────────────
-const d = new Date();
-document.getElementById('currentDate').textContent =
-  `${d.getMonth()+1}/${d.getDate()} (${['日','月','火','水','木','金','土'][d.getDay()]})`;
-document.querySelector('.date-badge .month').textContent = `${d.getFullYear()}年${d.getMonth()+1}月`;
-
-// ボタンのラベルを更新
-document.querySelector('.top-actions').innerHTML = `
-  <button class="edit-btn" onclick="refreshData()">🔄 最新データに更新</button>
-  <button class="edit-btn" onclick="openEditModal()">✏️ スプレッドシートを編集</button>
-`;
-
-loadFromSheets();
+updateDate();
+setInterval(updateDate, 1000);
 </script>
 </body>
 </html>
